@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serve Pene Hub - Canjear Key</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+        body { background-color: #0b0c10; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background-color: #121316; border: 1px solid #2d3142; padding: 30px 20px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
+        h1 { color: #00bfff; font-size: 22px; margin-bottom: 5px; font-weight: bold; }
+        .subtitle { color: #00ff88; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+        
+        .box-input { margin-bottom: 15px; text-align: left; }
+        label { font-size: 12px; color: #aaa; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; background: #1a1c23; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 15px; text-align: center; font-weight: bold; }
+        
+        .btn { background: linear-gradient(135deg, #00bfff, #0077ff); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .btn:active { transform: scale(0.98); }
+        
+        .key-box { background-color: #1a1c23; border: 1px dashed #00bfff; padding: 15px; border-radius: 10px; margin-top: 20px; display: none; }
+        .key-text { color: #00ff88; font-family: monospace; font-size: 16px; font-weight: bold; word-break: break-all; background: #0b0c10; padding: 10px; border-radius: 6px; border: 1px solid #333; margin-top: 8px; }
+        
+        .error-text { color: #ff4d4d; font-size: 13px; margin-top: 15px; font-weight: bold; display: none; }
+        .info { font-size: 11px; color: #8c91a0; margin-top: 20px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>SERVE PENE Hub</h1>
+        <div class="subtitle">Sistema de Verificación de Keys</div>
+
+        <div class="box-input">
+            <label for="userNumber">Ingresa tu número asignado:</label>
+            <input type="number" id="userNumber" placeholder="Ej. 1, 250..." min="1" max="1000">
+        </div>
+
+        <button class="btn" onclick="verificarYObtenerKey()">Obtener mi Key</button>
+
+        <div class="error-text" id="errorMsg">Número inválido o no autorizado. Ingresa tu número correcto.</div>
+
+        <div class="key-box" id="resultBox">
+            <div style="font-size: 12px; color: #aaa;">Tu Key Única:</div>
+            <div class="key-text" id="assignedKey">---</div>
+            <button class="btn" style="background: #00cc66; margin-top: 12px;" onclick="copiarKey()">Copiar Key</button>
+        </div>
+
+        <div class="info">
+            Cada usuario tiene un número único y exclusivo. Solo se permite 1 key por número.
+        </div>
+    </div>
+
+    <script>
+        // Banco masivo de keys alineadas por número (del 1 al 100)
+        const keysDatabase = {
+            1: "SPH-X9mK-22pL", 2: "SPH-Z7vB-44nT", 3: "SPH-Q3wX-99aZ", 4: "SPH-H8jN-33kK", 5: "SPH-F2dL-66xX",
+            6: "SPH-M5kP-11zZ", 7: "SPH-T1qW-88mN", 8: "SPH-K4xX-55vV", 9: "SPH-L9zZ-22pP", 10: "SPH-P6bB-77qQ",
+            11: "SPH-V3nX-44kK", 12: "SPH-R8mN-11wW", 13: "SPH-J2vV-99xX", 14: "SPH-C7kK-33zZ", 15: "SPH-N5pP-66mM",
+            16: "SPH-G1wW-55bB", 17: "SPH-D4qQ-22vV", 18: "SPH-B9zZ-77mM", 19: "SPH-S6xX-11kK", 20: "SPH-W2mN-88pP",
+            21: "AX7-992-BNC",  22: "ZX9-411-KLP",  23: "QWE-778-ZZX",  24: "POI-332-MNB",  25: "LKJ-556-VCF",
+            26: "HGF-884-XDS",  27: "REW-119-QAZ",  28: "TYU-663-WSX",  29: "JKL-225-EDC",  30: "VBN-447-RFV",
+            31: "MKI-998-TGB",  32: "OIK-774-YHN",  33: "UYT-331-UJM",  34: "TRE-552-IKL",  35: "WQA-116-OPU",
+            36: "ZXC-669-YTR",  37: "ASD-883-REW",  38: "FGH-227-QWE",  39: "JKL-441-BNM",  40: "BNM-995-VCX",
+            41: "ALPHA-77-Z",   42: "BETA-33-X",    43: "GAMMA-88-C",   44: "DELTA-11-V",   45: "OMEGA-55-B",
+            46: "VIP-99-K-44",   47: "GOD-22-L-77",   48: "PRO-66-M-11",   49: "LUA-44-N-88",   50: "HUB-33-P-22",
+            51: "Xtreme-991-Z",  52: "Ultra-442-X",  53: "Master-773-C", 54: "Elite-114-V",   55: "GodMode-555-B",
+            56: "FastKey-886-N", 57: "Secure-227-M", 58: "Random-668-Q", 59: "Token-339-W",   60: "Access-110-E",
+            61: "SP-991A-ZX",    62: "SP-882B-YX",    63: "SP-773C-XW",    64: "SP-664D-WV",    65: "SP-555E-VU",
+            66: "TX-1234-ZZ",    67: "TX-2345-YY",    68: "TX-3456-XX",    69: "TX-4567-WW",    70: "TX-5678-VV",
+            71: "KR-5544-AA",    72: "KR-6655-BB",    73: "KR-7766-CC",    74: "KR-8877-DD",    75: "KR-9988-EE",
+            76: "NX-1020-FF",    77: "NX-3040-GG",    78: "NX-5060-HH",    79: "NX-7080-II",    80: "NX-9010-JJ",
+            81: "K9xL-33pQ",     82: "B2nM-77kL",     83: "Z5vC-11xZ",     84: "J8hJ-55nM",     85: "Q1wQ-88bV",
+            86: "M3kK-44zX",     87: "T6qW-22mL",     88: "L4xX-66vV",     89: "P9zZ-11pP",     90: "V2bB-33qQ",
+            91: "R7nX-99kK",     92: "C5mN-44wW",     93: "N1vV-88xX",     94: "G4kK-22zZ",     95: "D8pP-55mM",
+            96: "B3wW-77bB",     97: "S9qQ-12vV",     98: "W5zZ-33mM",     99: "A2xX-66kK",     100: "E7mN-44pP"
+        };
+
+        function verificarYObtenerKey() {
+            var numInput = document.getElementById("userNumber").value.trim();
+            var errorDiv = document.getElementById("errorMsg");
+            var resultBox = document.getElementById("resultBox");
+            var keyDisplay = document.getElementById("assignedKey");
+
+            errorDiv.style.display = "none";
+            resultBox.style.display = "none";
+
+            var num = parseInt(numInput);
+
+            // Validar si el número existe en la base de datos
+            if (!num || !keysDatabase[num]) {
+                errorDiv.innerText = "Número no válido o no existe en el sistema. Escribe tu número asignado.";
+                errorDiv.style.display = "block";
+                return;
+            }
+
+            // Revisar si este número ya fue usado y bloqueado en este dispositivo/navegador
+            var usados = [];
+            try {
+                usadas = JSON.parse(localStorage.getItem("sph_numeros_reclamados") || "[]");
+            } catch(e) { usadas = []; }
+
+            if (usadas.includes(num)) {
+                errorDiv.innerText = "¡Este número ya reclamó su key anteriormente y ha caducado o está bloqueado!";
+                errorDiv.style.display = "block";
+                return;
+            }
+
+            // Entregar la key correspondiente al número escrito
+            var keyAsignada = keysDatabase[num];
+            keyDisplay.innerText = keyAsignada;
+            resultBox.style.display = "block";
+
+            // Registrar el número como usado para que no vuelva a reclamar
+            usadas.push(num);
+            localStorage.setItem("sph_numeros_reclamados", JSON.stringify(usadas));
+        }
+
+        function copiarKey() {
+            var keyText = document.getElementById("assignedKey").innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(keyText).then(function() {
+                    alert("¡Key copiada con éxito!");
+                });
+            } else {
+                alert("Tu key es: " + keyText);
+            }
+        }
+    </script>
+</body>
+</html>
